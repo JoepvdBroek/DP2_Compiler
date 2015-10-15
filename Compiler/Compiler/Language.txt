@@ -1,0 +1,15 @@
+﻿x = 0 ;
+
+zolang ( x < 1000 ) {
+	x = x + 5 ;
+	
+	schrijf ( x ) ;
+}
+
+als ( x == 1000 ) {
+	x = x + 1000 ;
+	schrijf ( x ) ;
+}
+
+
+

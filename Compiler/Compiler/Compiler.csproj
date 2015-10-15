@@ -43,14 +43,52 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\BaseCommand.cs" />
+    <Compile Include="Commands\ClearTempVariablesCommand.cs" />
+    <Compile Include="Commands\CreateVariableCommand.cs" />
+    <Compile Include="Commands\EqualsCommand.cs" />
+    <Compile Include="Commands\PlusCommand.cs" />
+    <Compile Include="Commands\PrintCommand.cs" />
+    <Compile Include="Commands\ReturnToVariableCommand.cs" />
+    <Compile Include="Commands\SetReturnValueCommand.cs" />
+    <Compile Include="Commands\SmallerThanCommand.cs" />
+    <Compile Include="Commands\VariableToReturnCommand.cs" />
+    <Compile Include="Compilers\Compiled\AbstractCompiled.cs" />
+    <Compile Include="Compilers\Compiled\CompiledAssignment.cs" />
+    <Compile Include="Compilers\Compiled\CompiledCondition.cs" />
+    <Compile Include="Compilers\Compiled\CompiledDoNothing.cs" />
+    <Compile Include="Compilers\Compiled\CompiledIdentifier.cs" />
+    <Compile Include="Compilers\Compiled\CompiledIf.cs" />
+    <Compile Include="Compilers\Compiled\CompiledNumber.cs" />
+    <Compile Include="Compilers\Compiled\CompiledPlus.cs" />
+    <Compile Include="Compilers\Compiled\CompiledPrint.cs" />
+    <Compile Include="Compilers\Compiled\CompiledString.cs" />
+    <Compile Include="Compilers\Compiled\CompiledWhile.cs" />
+    <Compile Include="Compilers\Compiler.cs" />
+    <Compile Include="Compilers\CompilerFactory.cs" />
+    <Compile Include="Nodes\AbstractFunctionCallNode.cs" />
+    <Compile Include="Nodes\ConditionalJumpNode.cs" />
+    <Compile Include="Nodes\DirectFunctionCallNode.cs" />
+    <Compile Include="Nodes\DoNothingNode.cs" />
+    <Compile Include="Nodes\FunctionCallNode.cs" />
+    <Compile Include="Nodes\JumpNode.cs" />
+    <Compile Include="Nodes\NextNodeVisitor.cs" />
+    <Compile Include="Nodes\Node.cs" />
+    <Compile Include="Nodes\NodeLinkedList.cs" />
+    <Compile Include="Nodes\NodeVisitor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="Tokenizer.cs" />
+    <Compile Include="VirtualMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Language.txt" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

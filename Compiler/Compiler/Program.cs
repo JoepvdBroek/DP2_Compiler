@@ -5,29 +5,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Compiler.Compilers;
+
 namespace Compiler
 {
     class Program
     {
         static void Main(string[] args)
         {
-            try
-            {
-                //nick1 or nickv
-                //using (StreamReader sr = new StreamReader("C:/Users/Joep/Documents/Visual Studio 2015/Projects/Tokenizer/Tokenizer/Voorbeeldscript.txt"))
-                //{
-                string[] lines = File.ReadAllLines("C:/Users/Joep/Documents/Visual Studio 2015/Projects/Tokenizer/Tokenizer/Voorbeeldscript.txt");
+            var lines = (File.ReadAllLines(Environment.CurrentDirectory + @"\..\..\Language.txt"));
 
-                Tokenizer tokenizer = new Tokenizer(lines);
-                //}
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("The file could not be read:");
-                Console.WriteLine(e.Message);
-            }
+            Tokenizer tokenizer = new Tokenizer(lines);
 
-            Console.ReadLine();
+            Compilers.Compiler compiler = new Compilers.Compiler();
+            compiler.TokenList = tokenizer.tokenList;
+
+            VirtualMachine vm = new VirtualMachine();
+
+            vm.Run(compiler.compile());
+
+            Console.ReadKey();
 
         }
     }

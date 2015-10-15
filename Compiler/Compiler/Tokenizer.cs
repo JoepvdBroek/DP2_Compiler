@@ -9,7 +9,7 @@ namespace Compiler
     public enum TokenType
     {
         EQUALS,
-        SEMICOLON,
+        SEMICOLUM,
         WHILE,
         ELLIPSISOPEN,
         ELLIPSISCLOSE,
@@ -18,118 +18,177 @@ namespace Compiler
         MINUS,
         PLUS,
         IF,
+        NUMBER,
+        IDENTIFIER,
+        ELSE,
         GREATERTHAN,
         SMALLERTHAN,
-        SCHRIJF
+        SCHRIJF,
+        ANY,
+        STRINGOPENCLOSE,
+        DOUBLE_EQUALS
     }
 
-    class Tokenizer
+    public class Tokenizer
     {
         private Dictionary<string, TokenType> map;
-
-        private string[] words;
-        private Stack<string> characterStack;
+        
+        private Stack<TokenType> ifStack;
+        private Stack<TokenType> bracketStack;
+        private Stack<TokenType> ellipseStack;
         private int level;
+        private int lineNumber;
+        public LinkedList<Token> tokenList { get; }
+        private List<Token> stringList;
 
         public Tokenizer(string[] lines)
         {
             this.level = 0;
-            this.characterStack = new Stack<string>();
+            this.lineNumber = 0;
+            this.ifStack = new Stack<TokenType>();
+            this.bracketStack = new Stack<TokenType>();
+            this.ellipseStack = new Stack<TokenType>();
+            this.stringList = new List<Token>();
+            this.tokenList = new LinkedList<Token>();
 
-            initMap();
+            this.initMap();
 
             foreach (string line in lines)
             {
-                this.run(line.Split(' ', '\r', '\n', '\t'));
+                string[] words = line.Split(' ', '\r', '\n', '\t');
+
+                if(words.Length != 0 && !(words.Length == 1 && words[0] == ""))
+                {
+                    this.run(words);
+                }
+                
+                this.lineNumber++;
             }
 
+            var currentToken = tokenList.First;
+
+            while(currentToken != null)
+            {
+                if (currentToken.Value.TokenType == TokenType.IDENTIFIER && currentToken.Value.Text == "")
+                {
+                    currentToken.Value.TokenType = TokenType.ANY;
+                    
+                }
+                currentToken = currentToken.Next;
+            }
         }
 
         private void initMap()
         {
-            map = new Dictionary<string, TokenType>();
+            this.map = new Dictionary<string, TokenType>();
 
-            map["="] = TokenType.EQUALS;
-            map[";"] = TokenType.SEMICOLON;
-            map["zolang"] = TokenType.WHILE;
-            map["als"] = TokenType.IF;
-            map[">"] = TokenType.GREATERTHAN;
-            map["<"] = TokenType.SMALLERTHAN;
-            map["+"] = TokenType.PLUS;
-            map["-"] = TokenType.MINUS;
-            map["{"] = TokenType.BRACKETOPEN;
-            map["}"] = TokenType.BRACKETCLOSE;
-            map["("] = TokenType.ELLIPSISOPEN;
-            map[")"] = TokenType.ELLIPSISCLOSE;
-            map["schrijf"] = TokenType.SCHRIJF;
+            this.map["="] = TokenType.EQUALS;
+            this.map["ander"] = TokenType.ELSE;
+            this.map["zolang"] = TokenType.WHILE;
+            this.map["als"] = TokenType.IF;
+            this.map[";"] = TokenType.SEMICOLUM;
+            this.map[">"] = TokenType.GREATERTHAN;
+            this.map["<"] = TokenType.SMALLERTHAN;
+            this.map["+"] = TokenType.PLUS;
+            this.map["-"] = TokenType.MINUS;
+            this.map["{"] = TokenType.BRACKETOPEN;
+            this.map["}"] = TokenType.BRACKETCLOSE;
+            this.map["("] = TokenType.ELLIPSISOPEN;
+            this.map[")"] = TokenType.ELLIPSISCLOSE;
+            this.map["\""] = TokenType.STRINGOPENCLOSE;
+            this.map["schrijf"] = TokenType.SCHRIJF;
+            this.map["=="] = TokenType.DOUBLE_EQUALS;
         }
 
         private void run(string[] line)
         {
-            string compared = "";
-
-            foreach (string word in line)
+            foreach(string word in line)
             {
-                if (word == "{" || word == "(")
-                {
-                    this.characterStack.Push(word);
-                    this.level++;
-                }
+                Token token = new Token();
+                token.Position = tokenList.Count + 1;
+                token.Text = word;
+                token.Level = this.level;
+                token.LineNumber = this.lineNumber;
 
-                if (word == "}")
+                if (!this.map.ContainsKey(word))
                 {
-                    if (this.characterStack.Peek() == "{")
+                    int wordNumeric;
+                    bool result = int.TryParse(word, out wordNumeric);
+                    if (result)
                     {
-                        this.characterStack.Pop();
-                        this.level--;
+                        token.TokenType = TokenType.NUMBER;
                     }
                     else
                     {
-                        Console.WriteLine("ERROR WITH CHARACTERSTACK");
+                        token.TokenType = TokenType.IDENTIFIER;
                     }
-                }
-
-                if (word == ")")
-                {
-                    if (this.characterStack.Peek() == "(")
-                    {
-                        this.characterStack.Pop();
-                        this.level--;
-                    }
-                    else
-                    {
-                        Console.WriteLine("ERROR WITH CHARACTERSTACK");
-                    }
-                }
-
-                compared += word;
-                bool match = false;
-
-                foreach (KeyValuePair<string, TokenType> entry in this.map)
-                {
-                    if (entry.Key.Contains(compared))
-                    {
-                        match = true;
-                    }
-                }
-
-                if (!match)
-                {
-                    //identifier
-                    Console.WriteLine("Level: " + this.level + " Identifier: " + compared);
-                    compared = "";
                 }
                 else
                 {
-                    //token
-                    if (this.map.ContainsKey(compared))
-                    {
-                        Console.WriteLine("Level: " + this.level + " Token: " + compared);
-                        compared = "";
-                    }
+                    this.handleStack(this.map[word]);
+                    
+                    token.TokenType = this.map[word];
+                    
+                    this.handlePartner(token);
                 }
+                this.tokenList.AddLast(token);
             }
+        }
 
+        private void handlePartner(Token token)
+        {
+            switch (token.TokenType) {
+                case TokenType.STRINGOPENCLOSE:
+                    if(this.stringList.Count > 0)
+                    {
+                        token.Partner = this.stringList[0];
+                        this.tokenList.Find(this.stringList[0]).Value.Partner = token;
+                        this.stringList.RemoveAt(0);
+                    }
+                    else
+                    {
+                        this.stringList.Add(token);
+                    }
+                    break;
+            }
+        }
+
+        private void handleStack(TokenType tokenType)
+        {
+            switch (tokenType)
+            {
+                case TokenType.BRACKETOPEN:
+                    this.bracketStack.Push(tokenType);
+                    this.level++;
+                    break;
+                case TokenType.BRACKETCLOSE:
+                    if(this.bracketStack.Peek() == TokenType.BRACKETOPEN)
+                    {
+                        this.bracketStack.Pop();
+                        this.level--;
+                    }
+                    break;
+                case TokenType.ELLIPSISOPEN:
+                    this.ellipseStack.Push(tokenType);
+                    this.level++;
+                    break;
+                case TokenType.ELLIPSISCLOSE:
+                    if (this.ellipseStack.Peek() == TokenType.ELLIPSISOPEN)
+                    {
+                        this.ellipseStack.Pop();
+                        this.level--;
+                    }
+                    break;
+                case TokenType.IF:
+                    this.ifStack.Push(tokenType);
+                    break;
+                case TokenType.ELSE:
+                    if (this.ifStack.Peek() == TokenType.ELSE)
+                    {
+                        this.ifStack.Pop();
+                    }
+                    break;
+            }
         }
     }
 }

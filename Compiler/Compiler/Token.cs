@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Compiler
 {
-    class Token
+    public class Token
     {
         public int LineNumber { get; set; }
         public int Position { get; set; }
